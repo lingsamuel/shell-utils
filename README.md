@@ -1,6 +1,8 @@
 
 # Shell 工具集
 
+[源链接](https://lingsamuel.github.io/page/2020-07-13-shell-utils/).
+
 持续进化中……
 
 - 日志相关函数：着色用。没有颜色的 log 是没有灵魂的。
