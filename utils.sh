@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Env
+
+get_running_shell() {
+    echo "$(ps -p $$ -oargs=)"
+}
+
 # ==== Path ====
 
 get_location() {

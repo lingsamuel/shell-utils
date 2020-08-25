@@ -3,6 +3,19 @@
 BASE_DIR="$(dirname $(readlink -f $0))"
 source $BASE_DIR/shell-utils.sh
 
+test_array() {
+    ARR=(a b c)
+    append ARR d e 'f g'
+    prepend ARR '0 1' 2
+    declare -p ARR
+
+    ARR=(a b c)
+    split_to_array ARR ',' 'd,e,,f'
+    declare -p ARR
+    split_to_array NEW_ARR ',' 'd,e,,f'
+    declare -p NEW_ARR
+}
+
 test_stack() {
     new_stack stack 200
     echo "init: $(print_stack stack)"
@@ -68,6 +81,6 @@ test_color() {
     light_purple "light purple"
     light_blue "light blue"
 }
-test_stack
+#test_stack
 # test_shell_opts
-# test_color
+ test_color

@@ -1,4 +1,44 @@
 #!/bin/bash
+prepend () {
+    local i=$#*
+    while (( $i > 1 )); do
+        typeset -g "${1}[1,0]=$*[$i]"
+        i=$((i - 1))
+    done
+}
+
+append() {
+    local ARR_NAME=$1
+    shift
+    local baseIndex=${#${(P)ARR_NAME[@]}}
+    for (( i = 1; i <= ${#*}; i++)); do
+        typeset -g "${ARR_NAME}[$((baseIndex+i))]=$*[$i]"
+    done
+}
+
+split_to_array() {
+    local RUNNING_SHELL=$(get_running_shell)
+
+    local ARR_NAME=$1
+    local IFS="$2"
+    if [[ $RUNNING_SHELL = "bash" ]]; then
+        local -n arr=$ARR_NAME # use nameref for indirection
+        arr=($3)
+    elif [[ $RUNNING_SHELL = "zsh" ]]; then
+        typeset -g -ax "$ARR_NAME"
+        local arr=(${(@ps:$IFS:)3})
+        local baseIndex=${#${(P)ARR_NAME[@]}}
+        for (( i = 1; i <= ${#arr}; i++)); do
+            typeset -g "${ARR_NAME}[$((baseIndex+i))]=${arr[$i]}"
+        done
+        # declare -p arr
+        # eval "$ARR_NAME=(${arr[*]})"
+        # echo "${ARR_NAME}+=(${arr[*]})"
+        # ${ARR_NAME}+=(${arr[*]})
+    else
+        echo "Not $RUNNING_SHELL implement yet"
+    fi
+}
 
 join_array() {
     local IFS="$1"
