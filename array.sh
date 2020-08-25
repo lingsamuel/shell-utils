@@ -44,6 +44,7 @@ append() {
     fi
 }
 
+# split_to_array ARR ',' 'a,b,cd,,e'
 split_to_array() {
     local RUNNING_SHELL=$(get_running_shell)
 
@@ -59,13 +60,15 @@ split_to_array() {
         fi
     elif [[ $RUNNING_SHELL = "zsh" ]]; then
         typeset -g -ax "$ARR_NAME"
-        local arr=(${(@ps:$IFS:)3})
+        local _InternalArr=(${(@ps:$IFS:)3})
         local baseIndex=${#${(P)ARR_NAME[@]}}
-        for (( i = 1; i <= ${#arr}; i++)); do
-            typeset -g "${ARR_NAME}[$((baseIndex+i))]=${arr[$i]}"
+
+        # local _arr=("${(P)ARR_NAME[*]} ${arr[*]}")
+        # eval "$ARR_NAME=(${_arr[*]})"
+
+        for (( i = 1; i <= ${#_InternalArr}; i++)); do
+            typeset -g "${ARR_NAME}[$((baseIndex+i))]=${_InternalArr[$i]}"
         done
-        # declare -p arr
-        # eval "$ARR_NAME=(${arr[*]})"
     else
         echo "Not $RUNNING_SHELL implementation yet"
     fi
