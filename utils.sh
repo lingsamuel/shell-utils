@@ -90,7 +90,7 @@ is_empty_dir() {
     fi
 }
 
-variable-is-set() {
+variable_is_set() {
     declare -p "$1" &>/dev/null
 }
 var_is_set() {

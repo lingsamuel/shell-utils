@@ -1,19 +1,47 @@
 #!/bin/bash
+
+_get_array_by_name() {
+    # this is useless, just for backup
+    local ARR_NAME=$1
+    local arrayIndirector="${ARR_NAME}[@]"
+    local arr=("${!arrayIndirector}")
+}
+
 prepend () {
-    local i=$#*
-    while (( $i > 1 )); do
-        typeset -g "${1}[1,0]=$*[$i]"
-        i=$((i - 1))
-    done
+    local RUNNING_SHELL=$(get_running_shell)
+    if [[ $RUNNING_SHELL = "zsh" ]]; then
+        local i=$#*
+        while (( $i > 1 )); do
+            typeset -g "${1}[1,0]=${*[$i]}"
+            i=$((i - 1))
+        done
+    elif [[ $RUNNING_SHELL = "bash" ]]; then
+        local ARR_NAME=$1
+        shift
+        local __arrIndirector="${ARR_NAME}[@]"
+        eval "${ARR_NAME}=(${*}  ${!__arrIndirector})"
+    else
+        echo "Not $RUNNING_SHELL implementation yet"
+    fi
 }
 
 append() {
+    local RUNNING_SHELL=$(get_running_shell)
     local ARR_NAME=$1
     shift
-    local baseIndex=${#${(P)ARR_NAME[@]}}
-    for (( i = 1; i <= ${#*}; i++)); do
-        typeset -g "${ARR_NAME}[$((baseIndex+i))]=$*[$i]"
-    done
+
+    if [[ $RUNNING_SHELL = "zsh" ]]; then
+        local baseIndex=${#${(P)ARR_NAME[@]}}
+        for (( i = 1; i <= ${#*}; i++)); do
+            typeset -g "${ARR_NAME}[$((baseIndex+i))]=$*[$i]"
+        done
+    elif [[ $RUNNING_SHELL = "bash" ]]; then
+        # circular name reference 处理起来很麻烦，不想用了
+        local __arrIndirector="${ARR_NAME}[@]"
+        eval "${ARR_NAME}=(${!__arrIndirector} ${*})"
+    else
+        echo "Not $RUNNING_SHELL implementation yet"
+    fi
 }
 
 split_to_array() {
@@ -22,8 +50,13 @@ split_to_array() {
     local ARR_NAME=$1
     local IFS="$2"
     if [[ $RUNNING_SHELL = "bash" ]]; then
-        local -n arr=$ARR_NAME # use nameref for indirection
-        arr=($3)
+        if [[ $ARR_NAME = "arr" ]]; then
+            local -n _arr=$ARR_NAME # avoid circular name reference
+            _arr+=($3)
+        else
+            local -n arr=$ARR_NAME # use nameref for indirection
+            arr+=($3)
+        fi
     elif [[ $RUNNING_SHELL = "zsh" ]]; then
         typeset -g -ax "$ARR_NAME"
         local arr=(${(@ps:$IFS:)3})
@@ -33,10 +66,8 @@ split_to_array() {
         done
         # declare -p arr
         # eval "$ARR_NAME=(${arr[*]})"
-        # echo "${ARR_NAME}+=(${arr[*]})"
-        # ${ARR_NAME}+=(${arr[*]})
     else
-        echo "Not $RUNNING_SHELL implement yet"
+        echo "Not $RUNNING_SHELL implementation yet"
     fi
 }
 

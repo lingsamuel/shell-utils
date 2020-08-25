@@ -4,6 +4,8 @@ new_stack() {
     local STACK_NAME=$1
     local STACK_SIZE=${2:-100}
     declare -ax $STACK_NAME
+
+    # 生成 BP、SP
     local STACK_BASE_POINTER_NAME="${STACK_NAME}_BP"
     export $STACK_BASE_POINTER_NAME=$STACK_SIZE
     local STACK_POINTER_NAME="${STACK_NAME}_SP"
@@ -17,8 +19,11 @@ push() {
         return
     fi
 
+    # 移动 SP
     local STACK_POINTER_NAME="${STACK_NAME}_SP"
     export $STACK_POINTER_NAME=$((${!STACK_POINTER_NAME} - 1))
+
+    # stack[1]=2
     local index="${STACK_NAME}[${!STACK_POINTER_NAME}]=\"$item\""
     eval "${index}"
 }
@@ -32,11 +37,13 @@ pop() {
     if [ "${!STACK_BASE_POINTER_NAME}" -eq "${!STACK_POINTER_NAME}" ]; then
         return
     fi
-    local index="${STACK_NAME}[${!STACK_POINTER_NAME}]"
-    # eecho "executing (pop) $index"
+
+    # 生成返回值
+    local index="${STACK_NAME}[${!STACK_POINTER_NAME}]" # stack[1]
     local VAR="${!index}"
     export $RETURN_VAL_NAME="$VAR"
 
+    # 移动 SP
     export $STACK_POINTER_NAME=$((${!STACK_POINTER_NAME} + 1))   # Probelm: Subshell export won't affect to parent shell... So we can't do `VAL=$(pop stack)`
 }
 
